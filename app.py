@@ -311,4 +311,3 @@ with tab2:
 
 st.write("")
 st.markdown("<div class='small-muted'>Tip: After you push changes to GitHub, Streamlit will redeploy automatically.</div>", unsafe_allow_html=True)
-``
