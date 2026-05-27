@@ -2,57 +2,47 @@ import streamlit as st
 import json
 import requests
 
-st.set_page_config(page_title="Kids Reading Tracker", layout="wide")
+st.set_page_config(page_title="Moody Family Reading Tracker", layout="wide")
 
-st.title("📚 Kids Reading Tracker")
+st.title("📚 Moody Family Reading Tracker")
 
 kids = ["Freddie", "Genevieve", "Juliette", "Eleanor"]
 
-# Load saved data
-
+# --- LOAD DATA SAFELY ---
 try:
     with open("data.json", "r") as f:
         data = json.load(f)
+        if not isinstance(data, dict):
+            data = {}
 except:
     data = {}
 
-# ✅ Ensure all kids exist
+# ✅ Ensure correct structure
 for kid in kids:
-    if kid not in data:
+    if kid not in data or not isinstance(data[kid], list):
         data[kid] = []
 
-
-# --- FUNCTION: Get book cover ---
+# --- GET BOOK COVER (Open Library - reliable) ---
 def get_book_cover(title):
     try:
-        # Try a better query
-        url = f"https://www.googleapis.com/books/v1/volumes?q={title}&maxResults=3"
-        response = requests.get(url, timeout=5)
+        search_url = f"https://openlibrary.org/search.json?title={title}"
+        response = requests.get(search_url, timeout=5).json()
 
-        if response.status_code != 200:
+        if "docs" not in response or len(response["docs"]) == 0:
             return None
 
-        data = response.json()
+        cover_id = response["docs"][0].get("cover_i")
 
-        if "items" not in data:
-            return None
-
-        for item in data["items"]:
-            volume = item.get("volumeInfo", {})
-            image_links = volume.get("imageLinks", {})
-
-            if "thumbnail" in image_links:
-                img = image_links["thumbnail"]
-                return img.replace("http://", "https://")
+        if cover_id:
+            return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
 
         return None
 
-    except Exception as e:
+    except:
         return None
 
-
-# --- INPUT AREA ---
-st.subheader("Add a book")
+# --- INPUT ---
+st.subheader("➕ Add a book")
 
 col1, col2 = st.columns(2)
 
@@ -60,16 +50,32 @@ with col1:
     child = st.selectbox("Who is reading?", kids)
 
 with col2:
-  book = st.text_input("Book name (add author if possible)")
+    book = st.text_input("Book name (add author if possible)")
 
 if st.button("Add Book"):
     if book:
         data[child].append(book)
+
         with open("data.json", "w") as f:
             json.dump(data, f)
+
         st.success(f"✅ {child} read '{book}'")
 
-# --- DISPLAY PROGRESS ---
+        # 🎉 Celebration every 5 books
+        if len(data[child]) % 5 == 0:
+            st.balloons()
+
+# --- LEADERBOARD ---
+st.divider()
+st.subheader("🏆 Leaderboard")
+
+leaderboard = sorted(kids, key=lambda x: len(data[x]), reverse=True)
+
+for i, kid in enumerate(leaderboard):
+    medal = ["🥇", "🥈", "🥉", ""][i] if i < 4 else ""
+    st.write(f"{medal} **{kid}** — {len(data[kid])} books")
+
+# --- PROGRESS ---
 st.divider()
 st.subheader("📊 Progress")
 
@@ -82,11 +88,11 @@ for i, kid in enumerate(kids):
 
     with cols[i]:
         st.markdown(f"### {kid}")
-        st.metric(label="Books Read", value=count)
+        st.metric("Books", count)
         st.progress(progress / 5)
         st.caption(f"Level {level}")
 
-# --- DISPLAY BOOKS ---
+# --- BOOK DISPLAY ---
 st.divider()
 st.subheader("📖 Books Read")
 
@@ -106,5 +112,7 @@ for kid in kids:
 
             if cover:
                 st.image(cover)
+            else:
+                st.image("https://placehold.co/128x200?text=No+Cover")
 
             st.caption(book)
