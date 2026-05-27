@@ -23,10 +23,10 @@ for kid in kids:
 
 
 # --- FUNCTION: Get book cover ---
-def get_book_cover(title):
-    st.write(f"DEBUG: {book} -> {cover}")
+ddef get_book_cover(title):
     try:
-        url = f"https://www.googleapis.com/books/v1/volumes?q=intitle:{title}"
+        # Try a better query
+        url = f"https://www.googleapis.com/books/v1/volumes?q={title}&maxResults=3"
         response = requests.get(url, timeout=5)
 
         if response.status_code != 200:
@@ -42,12 +42,14 @@ def get_book_cover(title):
             image_links = volume.get("imageLinks", {})
 
             if "thumbnail" in image_links:
-                return image_links["thumbnail"].replace("http://", "https://")
+                img = image_links["thumbnail"]
+                return img.replace("http://", "https://")
 
         return None
 
-    except:
+    except Exception as e:
         return None
+
 
 # --- INPUT AREA ---
 st.subheader("Add a book")
@@ -58,7 +60,7 @@ with col1:
     child = st.selectbox("Who is reading?", kids)
 
 with col2:
-    book = st.text_input("Book name")
+  book = st.text_input("Book name (add author if possible)")
 
 if st.button("Add Book"):
     if book:
