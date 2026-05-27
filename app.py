@@ -24,6 +24,7 @@ for kid in kids:
 
 # --- FUNCTION: Get book cover ---
 def get_book_cover(title):
+    st.write(f"DEBUG: {book} -> {cover}")
     try:
         url = f"https://www.googleapis.com/books/v1/volumes?q=intitle:{title}"
         response = requests.get(url, timeout=5)
