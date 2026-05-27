@@ -24,10 +24,27 @@ for kid in kids:
 
 # --- FUNCTION: Get book cover ---
 def get_book_cover(title):
-    url = f"https://www.googleapis.com/books/v1/volumes?q={title}"
-    response = requests.get(url).json()
     try:
-        return response["items"][0]["volumeInfo"]["imageLinks"]["thumbnail"]
+        url = f"https://www.googleapis.com/books/v1/volumes?q=intitle:{title}"
+        response = requests.get(url, timeout=5)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+
+        if "items" not in data:
+            return None
+
+        for item in data["items"]:
+            volume = item.get("volumeInfo", {})
+            image_links = volume.get("imageLinks", {})
+
+            if "thumbnail" in image_links:
+                return image_links["thumbnail"].replace("http://", "https://")
+
+        return None
+
     except:
         return None
 
