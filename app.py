@@ -6,14 +6,21 @@ st.set_page_config(page_title="Kids Reading Tracker", layout="wide")
 
 st.title("📚 Kids Reading Tracker")
 
-kids = ["Jack", "Ella", "Sam", "Mia"]
+kids = ["Freddie", "Genevieve", "Juliette", "Eleanor"]
 
 # Load saved data
+
 try:
     with open("data.json", "r") as f:
         data = json.load(f)
 except:
-    data = {kid: [] for kid in kids}
+    data = {}
+
+# ✅ Ensure all kids exist
+for kid in kids:
+    if kid not in data:
+        data[kid] = []
+
 
 # --- FUNCTION: Get book cover ---
 def get_book_cover(title):
