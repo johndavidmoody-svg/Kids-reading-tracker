@@ -23,7 +23,7 @@ for kid in kids:
 
 
 # --- FUNCTION: Get book cover ---
-ddef get_book_cover(title):
+def get_book_cover(title):
     try:
         # Try a better query
         url = f"https://www.googleapis.com/books/v1/volumes?q={title}&maxResults=3"
